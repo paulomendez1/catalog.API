@@ -23,6 +23,17 @@ namespace Catalog.API {
             builder.Services.AddPersistenceServices(config);
             builder.Services.AddDomainServices();
             builder.Services.AddControllers().AddNewtonsoftJson();
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("http://localhost:4200/").AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .WithExposedHeaders(new string[] { "x-pagination" });
+                });
+            });
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(option =>
@@ -72,7 +83,7 @@ namespace Catalog.API {
                 });
             });
 
-        var app = builder.Build();
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -81,10 +92,9 @@ namespace Catalog.API {
                 app.UseSwaggerUI();
             }
 
-            app.UseCors(cfg =>
-            {
-                cfg.AllowAnyOrigin();
-            });
+
+
+            app.UseCors();
 
             app.UseHttpsRedirection();
 

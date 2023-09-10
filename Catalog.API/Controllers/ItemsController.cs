@@ -1,5 +1,7 @@
 ﻿using Catalog.API.Filters;
 using Catalog.API.ResponseModels;
+using Catalog.Domain.Configurations;
+using Catalog.Domain.Contracts.Persistence;
 using Catalog.Domain.DTOs.Request;
 using Catalog.Domain.DTOs.Request.Item;
 using Catalog.Domain.DTOs.Response;
@@ -11,9 +13,12 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using RiskFirst.Hateoas;
 
 namespace Catalog.API.Controllers
@@ -36,19 +41,23 @@ namespace Catalog.API.Controllers
 
         [HttpGet]
 
-        public async Task<IActionResult> Get(int pageSize = 10, int pageIndex = 0)
+        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter)
         {
             _logger.LogInformation("Getting items...");
-            var items = await _itemService.GetItemsAsync();
-            var totalItems = items.Count();
-            var itemsOnPage = items.OrderBy(c => c.Name)
-                                    .Skip(pageSize * pageIndex)
-                                    .Take(pageSize);
 
-            var model = new PaginatedResponseModel<ItemResponse>(
-                pageIndex, pageSize, totalItems, itemsOnPage);
+            var items = await _itemService.GetItemsAsync(queryFilter);
 
-            return Ok(model);
+            var paginationMetadata = new
+            {
+                totalCount = items.TotalCount,
+                pageSize = items.PageSize,
+                currentPage = items.CurrentPage,
+                totalPages = items.TotalPages
+            };
+
+            HttpContext.Response.Headers.Append("x-pagination", JsonConvert.SerializeObject(paginationMetadata));
+
+            return Ok(items);
         }
 
         [HttpGet("{id:guid}")]

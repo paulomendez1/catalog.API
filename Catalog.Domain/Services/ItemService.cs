@@ -8,6 +8,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +47,7 @@ namespace Catalog.Domain.Services
             var item = _mapper.Map<Item>(request);
             var result = _itemRepository.Add(item);
             await _itemRepository.UnitOfWork.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeyEnum.Items);
             return _mapper.Map<ItemResponse>(result);
         }
 
@@ -57,6 +59,7 @@ namespace Catalog.Domain.Services
             result.IsInactive = true;
             _itemRepository.Update(result);
             await _itemRepository.UnitOfWork.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeyEnum.Items);
             return _mapper.Map<ItemResponse>(result);
         }
 
@@ -76,6 +79,8 @@ namespace Catalog.Domain.Services
             var entity = _mapper.Map<Item>(request);
             var result = _itemRepository.Update(entity);
             await _itemRepository.UnitOfWork.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeyEnum.Items);
+            _memoryCache.Remove(CacheKeyEnum.Item);
             return _mapper.Map<ItemResponse>(result);
         }
 
@@ -96,20 +101,28 @@ namespace Catalog.Domain.Services
             return mappedEntity;
         }
 
-        public async Task<IEnumerable<ItemResponse>> GetItemsAsync()
+        public async Task<PagedList<ItemResponse>> GetItemsAsync(GenericQueryFilter queryFilter)
         {
-            var cacheData = _memoryCache.Get<IEnumerable<ItemResponse>>(CacheKeyEnum.Items);
-
-            if(cacheData != null && cacheData.Count() > 0)
+            var cacheData = _memoryCache.Get<PagedList<ItemResponse>>(CacheKeyEnum.Items);
+            if (cacheData != null && cacheData.Count() > 0 
+                && cacheData.CurrentPage == queryFilter.PageNumber && cacheData.PageSize == queryFilter.PageSize)
             {
                 return cacheData;
             }
 
             var result = await _itemRepository.GetActiveItemsAsync();
 
+            if (!string.IsNullOrWhiteSpace(queryFilter.SearchQuery))
+            {
+                queryFilter.SearchQuery = queryFilter.SearchQuery.Trim();
+                result = result.Where(x => x.Description.Contains(queryFilter.SearchQuery) || x.Name.Contains(queryFilter.SearchQuery) || x.LabelName.Contains(queryFilter.SearchQuery));
+            }
+            result = result.OrderByDescending(x => x.ReleaseDate);
+
             var mappedResult = _mapper.Map<List<ItemResponse>>(result);
-            _memoryCache.Set<IEnumerable<ItemResponse>>(CacheKeyEnum.Items, mappedResult, EXPIRATION_DATE);
-            return mappedResult;
+            var paginatedResult = PagedList<ItemResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize);
+            _memoryCache.Set<PagedList<ItemResponse>>(CacheKeyEnum.Items, paginatedResult, EXPIRATION_DATE);
+            return paginatedResult;
         }
     }
 }

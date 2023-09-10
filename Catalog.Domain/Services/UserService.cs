@@ -39,7 +39,8 @@ namespace Catalog.Domain.Services
             bool response = await _userRepository.AuthenticateAsync(request.Email, request.Password, cancellationToken);
             return response == false ? null : new TokenResponse
             {
-                Token = GenerateSecurityToken(request)
+                Token = GenerateSecurityToken(request).Token,
+                ExpirationDate = GenerateSecurityToken(request).ExpirationDate
             };
         }
 
@@ -59,7 +60,7 @@ namespace Catalog.Domain.Services
             };
         }
 
-        private string GenerateSecurityToken(SignInRequest request)
+        private TokenResponse GenerateSecurityToken(SignInRequest request)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_authenticationSettings.Secret);
@@ -68,12 +69,16 @@ namespace Catalog.Domain.Services
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.Email, request.Email) }),
-                    Expires = DateTime.UtcNow.AddMinutes (_authenticationSettings.ExpirationMinutes),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+                Expires = DateTime.UtcNow.AddMinutes(_authenticationSettings.ExpirationMinutes),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                                                                 SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            return new TokenResponse
+            {
+                Token = tokenHandler.WriteToken(token),
+                ExpirationDate = tokenDescriptor.Expires.Value
+            };
         }
     }
 }

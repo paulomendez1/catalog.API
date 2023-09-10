@@ -1,5 +1,6 @@
 ﻿using Catalog.API.Filters;
 using Catalog.API.ResponseModels;
+using Catalog.Domain.Configurations;
 using Catalog.Domain.DTOs.Request.Item;
 using Catalog.Domain.Services;
 using Microsoft.AspNetCore.Http;
@@ -21,13 +22,13 @@ namespace Catalog.API.Controllers
         }
 
         [HttpGet(Name = nameof(Get))]
-        public async Task<IActionResult> Get([FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
+        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter)
         {
-            var result = await _itemService.GetItemsAsync();
+            var result = await _itemService.GetItemsAsync(queryFilter);
             var totalItems = result.Count();
             var itemsOnPage = result.OrderBy(c => c.Name)
-                                    .Skip(pageSize * pageIndex)
-                                    .Take(pageSize);
+                                    .Skip(queryFilter.PageSize * queryFilter.PageNumber)
+                                    .Take(queryFilter.PageSize);
             var hateoasResults = new List<ItemHateoasResponse>();
             foreach (var itemResponse in itemsOnPage)
             {
@@ -37,7 +38,7 @@ namespace Catalog.API.Controllers
                 hateoasResults.Add(hateoasResult);
             }
             var model = new PaginatedResponseModel<ItemHateoasResponse>(
-            pageIndex, pageSize, totalItems, hateoasResults);
+            queryFilter.PageNumber, queryFilter.PageSize, totalItems, hateoasResults);
             return Ok(model);
         }
 
