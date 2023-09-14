@@ -1,13 +1,16 @@
 ﻿using Catalog.API.Filters;
 using Catalog.API.ResponseModels;
+using Catalog.Domain.Configurations;
 using Catalog.Domain.Contracts.Persistence;
 using Catalog.Domain.DTOs.Request.Artist;
 using Catalog.Domain.DTOs.Request.Genre;
 using Catalog.Domain.DTOs.Response;
+using Catalog.Domain.Entities;
 using Catalog.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Catalog.API.Controllers
 {
@@ -26,17 +29,22 @@ namespace Catalog.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
+        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter)
         {
             _logger.LogInformation("Getting genres...");
-            var result = await _genreService.GetGenresAsync();
-            var totalItems = result.ToList().Count;
-            var itemsOnPage = result.OrderBy(c => c.GenreDescription)
-                                    .Skip(pageSize * pageIndex)
-                                    .Take(pageSize);
-            var model = new PaginatedResponseModel<GenreResponse>(
-            pageIndex, pageSize, totalItems, itemsOnPage);
-            return Ok(model);
+            var genres = await _genreService.GetGenresAsync(queryFilter);
+
+            var paginationMetadata = new
+            {
+                totalCount = genres.TotalCount,
+                pageSize = genres.PageSize,
+                currentPage = genres.CurrentPage,
+                totalPages = genres.TotalPages
+            };
+
+            HttpContext.Response.Headers.Append("x-pagination", JsonConvert.SerializeObject(paginationMetadata));
+
+            return Ok(genres);
         }
         [HttpGet("{id:guid}")]
         [GenreExists]

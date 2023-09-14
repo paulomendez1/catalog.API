@@ -36,7 +36,7 @@ namespace Catalog.Domain.Services
             };
             var result = _artistRepository.Add(artist);
             await _artistRepository.UnitOfWork.SaveChangesAsync();
-
+            _memoryCache.Remove(CacheKeyEnum.Artists);
             return _mapper.Map<ArtistResponse>(result);
         }
 
@@ -56,19 +56,29 @@ namespace Catalog.Domain.Services
             return mappedArtist;
         }
 
-        public async Task<IEnumerable<ArtistResponse>> GetArtistsAsync()
+        public async Task<PagedList<ArtistResponse>> GetArtistsAsync(GenericQueryFilter queryFilter)
         {
-            var cacheData = _memoryCache.Get<IEnumerable<ArtistResponse>>(CacheKeyEnum.Artists);
-
-            if (cacheData != null && cacheData.Count() > 0)
+            var cacheData = _memoryCache.Get<PagedList<ArtistResponse>>(CacheKeyEnum.Artists);
+            
+            if (cacheData != null && cacheData.Count() > 0
+                       && cacheData.CurrentPage == queryFilter.PageNumber && cacheData.PageSize == queryFilter.PageSize)
             {
                 return cacheData;
             }
 
-            var artists = await _artistRepository.GetAllAsync();
-            var mappedArtists = _mapper.Map<IEnumerable<ArtistResponse>>(artists);
-            _memoryCache.Set<IEnumerable<ArtistResponse>>(CacheKeyEnum.Artists, mappedArtists, EXPIRATION_DATE);
-            return mappedArtists;
+            var result = await _artistRepository.GetAllAsync();
+
+            if (!string.IsNullOrWhiteSpace(queryFilter.SearchQuery))
+            {
+                queryFilter.SearchQuery = queryFilter.SearchQuery.Trim();
+                result = result.Where(x => x.ArtistName.Contains(queryFilter.SearchQuery));
+            }
+            result = result.OrderByDescending(x => x.ArtistName);
+
+            var mappedResult = _mapper.Map<List<ArtistResponse>>(result);
+            var paginatedResult = PagedList<ArtistResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize);
+            _memoryCache.Set<IEnumerable<ArtistResponse>>(CacheKeyEnum.Artists, paginatedResult, EXPIRATION_DATE);
+            return paginatedResult;
         }
 
         public async Task<IEnumerable<ItemResponse>> GetItemByArtistIdAsync(GetArtistRequest request)

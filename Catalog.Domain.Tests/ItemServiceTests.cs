@@ -1,4 +1,5 @@
 using AutoMapper;
+using Catalog.Domain.Configurations;
 using Catalog.Domain.DTOs.Request;
 using Catalog.Domain.DTOs.Request.Artist;
 using Catalog.Domain.DTOs.Request.Genre;
@@ -26,6 +27,7 @@ namespace Catalog.Domain.Tests
         private readonly Mock<IGenreService> _genreServiceMock;
         private readonly IItemService _itemService;
         private readonly IMemoryCache _memoryCache;
+        private readonly GenericQueryFilter _queryFilter;
         public ItemServiceTests(CatalogContextFactory catalogContextFactory)
         {
             _itemRepository = new ItemRepository(catalogContextFactory._dbContext);
@@ -40,13 +42,18 @@ namespace Catalog.Domain.Tests
             _editItemRequest = new EditItemRequestValidator(_artistServiceMock.Object, _genreServiceMock.Object);
             _memoryCache = new MemoryCache(new MemoryCacheOptions());
             _itemService = new ItemService(_itemRepository, _mapper, _addItemRequest, _editItemRequest, _memoryCache);
+            _queryFilter = new GenericQueryFilter
+            {
+                PageNumber = 0,
+                PageSize = 50
+            };
         }
         [Fact]
         public async void GetItemsAsync_Success()
         {
 
             //Act
-            var result = await _itemService.GetItemsAsync();
+            var result = await _itemService.GetItemsAsync(_queryFilter);
 
             //Result
             Assert.NotNull(result);

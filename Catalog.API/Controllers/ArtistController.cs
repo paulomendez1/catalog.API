@@ -1,11 +1,14 @@
 ﻿using Catalog.API.Filters;
 using Catalog.API.ResponseModels;
+using Catalog.Domain.Configurations;
 using Catalog.Domain.DTOs.Request.Artist;
 using Catalog.Domain.DTOs.Response;
+using Catalog.Domain.Entities;
 using Catalog.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Catalog.API.Controllers
 {
@@ -23,17 +26,22 @@ namespace Catalog.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int pageSize = 10, [FromQuery] int pageIndex = 0)
+        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter)
         {
             _logger.LogInformation("Getting artists...");
-            var result = await _artistService.GetArtistsAsync();
-            var totalItems = result.ToList().Count;
-            var itemsOnPage = result.OrderBy(c => c.ArtistName)
-                                    .Skip(pageSize * pageIndex)
-                                    .Take(pageSize);
-            var model = new PaginatedResponseModel<ArtistResponse>
-                (pageIndex, pageSize, totalItems, itemsOnPage);
-            return Ok(model);
+            var artists = await _artistService.GetArtistsAsync(queryFilter);
+
+            var paginationMetadata = new
+            {
+                totalCount = artists.TotalCount,
+                pageSize = artists.PageSize,
+                currentPage = artists.CurrentPage,
+                totalPages = artists.TotalPages
+            };
+
+            HttpContext.Response.Headers.Append("x-pagination", JsonConvert.SerializeObject(paginationMetadata));
+
+            return Ok(artists);
         }
         [HttpGet("{id:guid}")]
         [ArtistExists]

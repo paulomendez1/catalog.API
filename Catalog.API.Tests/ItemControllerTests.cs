@@ -45,10 +45,8 @@ namespace Catalog.API.Tests
 
             var response = await client.GetAsync(url);
             var responseContent = await response.Content.ReadAsStringAsync();
-            var responseEntity = JsonConvert.DeserializeObject<PaginatedResponseModel<ItemResponse>>(responseContent);
-            Assert.Equal(pageSize, responseEntity.PageSize);
-            Assert.Equal(pageIndex, responseEntity.PageIndex);
-            Assert.Equal(pageSize, responseEntity.Data.Count());
+            var responseEntity = JsonConvert.DeserializeObject<IEnumerable<ItemResponse>>(responseContent);
+            Assert.Equal(pageSize, responseEntity.Count());
         }
         [Fact]
         public async Task GetById_Success()

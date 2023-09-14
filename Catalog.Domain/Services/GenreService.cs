@@ -36,24 +36,33 @@ namespace Catalog.Domain.Services
             };
             var result = _genreRepository.Add(Genre);
             await _genreRepository.UnitOfWork.SaveChangesAsync();
-
+            _memoryCache.Remove(CacheKeyEnum.Genres);
             return _mapper.Map<GenreResponse>(result);
         }
 
-        public async Task<IEnumerable<GenreResponse>> GetGenresAsync()
+        public async Task<PagedList<GenreResponse>> GetGenresAsync(GenericQueryFilter queryFilter)
         {
-            var cacheData = _memoryCache.Get<IEnumerable<GenreResponse>>(CacheKeyEnum.Genres);
+            var cacheData = _memoryCache.Get<PagedList<GenreResponse>>(CacheKeyEnum.Genres);
 
-            if (cacheData != null && cacheData.Count() > 0)
+            if (cacheData != null && cacheData.Count() > 0
+                && cacheData.CurrentPage == queryFilter.PageNumber && cacheData.PageSize == queryFilter.PageSize)
             {
                 return cacheData;
             }
 
-            var genres = await _genreRepository.GetAllAsync();
-            var mappedGenres = _mapper.Map<IEnumerable<GenreResponse>>(genres);
+            var result = await _genreRepository.GetAllAsync();
 
-            _memoryCache.Set<IEnumerable<GenreResponse>>(CacheKeyEnum.Genres, mappedGenres, EXPIRATION_DATE);
-            return mappedGenres;
+            if (!string.IsNullOrWhiteSpace(queryFilter.SearchQuery))
+            {
+                queryFilter.SearchQuery = queryFilter.SearchQuery.Trim();
+                result = result.Where(x => x.GenreDescription.Contains(queryFilter.SearchQuery));
+            }
+            result = result.OrderByDescending(x => x.GenreDescription);
+
+            var mappedResult = _mapper.Map<List<GenreResponse>>(result);
+            var paginatedResult = PagedList<GenreResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize);
+            _memoryCache.Set<PagedList<GenreResponse>>(CacheKeyEnum.Genres, paginatedResult, EXPIRATION_DATE);
+            return paginatedResult;
         }
 
         public async Task<GenreResponse> GetGenreAsync(GetGenreRequest request)

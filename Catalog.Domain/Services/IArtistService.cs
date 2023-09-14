@@ -1,4 +1,5 @@
-﻿using Catalog.Domain.DTOs.Request.Artist;
+﻿using Catalog.Domain.Configurations;
+using Catalog.Domain.DTOs.Request.Artist;
 using Catalog.Domain.DTOs.Response;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace Catalog.Domain.Services
 {
     public interface IArtistService
     {
-        Task<IEnumerable<ArtistResponse>> GetArtistsAsync();
+        Task<PagedList<ArtistResponse>> GetArtistsAsync(GenericQueryFilter queryFilter);
         Task<ArtistResponse> GetArtistAsync(GetArtistRequest request);
         Task<IEnumerable<ItemResponse>> GetItemByArtistIdAsync(GetArtistRequest request);
         Task<ArtistResponse> AddArtistAsync(AddArtistRequest request);

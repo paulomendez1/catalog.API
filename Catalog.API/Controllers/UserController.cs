@@ -32,7 +32,7 @@ namespace Catalog.API.Controllers
         public async Task<IActionResult> SignIn(SignInRequest request)
         {
             var token = await _userService.SignInAsync(request);
-            if (token == null) return BadRequest();
+            if (token == null) return BadRequest("Incorrect Login");
             return Ok(token);
         }
         [AllowAnonymous]
@@ -40,7 +40,7 @@ namespace Catalog.API.Controllers
         public async Task<IActionResult> SignUp(SignUpRequest request)
         {
             var user = await _userService.SignUpAsync(request);
-            if (user == null) return BadRequest();
+            if (user == null) return BadRequest("Incorrect Sign Up");
             return CreatedAtAction(nameof(Get), new { }, null);
         }
     }
