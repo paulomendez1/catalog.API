@@ -11,10 +11,10 @@ namespace Catalog.Domain.Services
 {
     public interface IItemService
     {
-        Task<PagedList<ItemResponse>> GetItemsAsync(GenericQueryFilter queryFilter);
-        Task<ItemResponse> GetItemAsync(GetItemRequest request);
-        Task<ItemResponse> AddItemAsync(AddItemRequest request);
-        Task<ItemResponse> EditItemAsync(EditItemRequest request);
-        Task<ItemResponse> DeleteItemAsync(DeleteItemRequest request);
+        Task<PagedList<ItemResponse>> GetItemsAsync(GenericQueryFilter queryFilter, CancellationToken token);
+        Task<ItemResponse> GetItemAsync(GetItemRequest request, CancellationToken token);
+        Task<ItemResponse> AddItemAsync(AddItemRequest request, CancellationToken token);
+        Task<ItemResponse> EditItemAsync(EditItemRequest request, CancellationToken token);
+        Task<ItemResponse> DeleteItemAsync(DeleteItemRequest request, CancellationToken token);
     }
 }

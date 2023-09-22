@@ -27,7 +27,7 @@ namespace Catalog.API.Filters
                     context.Result = new BadRequestResult();
                     return;
                 }
-                var result = await _itemService.GetItemAsync(new GetItemRequest { Id = id });
+                var result = await _itemService.GetItemAsync(new GetItemRequest { Id = id }, default(CancellationToken));
                 if (result == null)
                 {
                     _logger.LogError($"Item with ID: {id} not exist.");

@@ -28,19 +28,19 @@ namespace Catalog.Domain.Services
             _itemRepository = itemRepository;
             _memoryCache = memoryCache;
         }
-        public async Task<GenreResponse> AddGenreAsync(AddGenreRequest request)
+        public async Task<GenreResponse> AddGenreAsync(AddGenreRequest request, CancellationToken token)
         {
             var Genre = new Genre
             {
                 GenreDescription = request.GenreDescription
             };
-            var result = _genreRepository.Add(Genre);
+            var result = _genreRepository.Add(Genre, token);
             await _genreRepository.UnitOfWork.SaveChangesAsync();
             _memoryCache.Remove(CacheKeyEnum.Genres);
             return _mapper.Map<GenreResponse>(result);
         }
 
-        public async Task<PagedList<GenreResponse>> GetGenresAsync(GenericQueryFilter queryFilter)
+        public async Task<PagedList<GenreResponse>> GetGenresAsync(GenericQueryFilter queryFilter, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<PagedList<GenreResponse>>(CacheKeyEnum.Genres);
 
@@ -50,7 +50,7 @@ namespace Catalog.Domain.Services
                 return cacheData;
             }
 
-            var result = await _genreRepository.GetAllAsync();
+            var result = await _genreRepository.GetAllAsync(token);
 
             if (!string.IsNullOrWhiteSpace(queryFilter.SearchQuery))
             {
@@ -65,7 +65,7 @@ namespace Catalog.Domain.Services
             return paginatedResult;
         }
 
-        public async Task<GenreResponse> GetGenreAsync(GetGenreRequest request)
+        public async Task<GenreResponse> GetGenreAsync(GetGenreRequest request, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<GenreResponse>(CacheKeyEnum.Genre);
 
@@ -75,14 +75,14 @@ namespace Catalog.Domain.Services
             }
 
             if (request?.GenreId == null) throw new ArgumentNullException();
-            var genre = await _genreRepository.GetByIdAsync(request.GenreId);
+            var genre = await _genreRepository.GetByIdAsync(request.GenreId, token);
             var mappedGenre = _mapper.Map<GenreResponse>(genre);
 
             _memoryCache.Set<GenreResponse>(CacheKeyEnum.Genre, mappedGenre, EXPIRATION_DATE);
             return mappedGenre;
         }
 
-        public async Task<IEnumerable<ItemResponse>> GetItemByGenreIdAsync(GetGenreRequest request)
+        public async Task<IEnumerable<ItemResponse>> GetItemByGenreIdAsync(GetGenreRequest request, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<IEnumerable<ItemResponse>>(CacheKeyEnum.Items);
 
@@ -92,7 +92,7 @@ namespace Catalog.Domain.Services
             }
 
             if (request?.GenreId == null) throw new ArgumentNullException();
-            var items = await _itemRepository.GetItemByGenreIdAsync(request.GenreId);
+            var items = await _itemRepository.GetItemByGenreIdAsync(request.GenreId, token);
             var mappedItems = _mapper.Map<IEnumerable<ItemResponse>>(items);
 
             _memoryCache.Set<IEnumerable<ItemResponse>>(CacheKeyEnum.Items, mappedItems, EXPIRATION_DATE);

@@ -9,9 +9,9 @@ namespace Catalog.Domain.Contracts.Persistence
 {
     public interface IItemRepository : IRepository<Item>
     {
-        Task<Item> GetItemWithSub(Guid id);
-        Task<IEnumerable<Item>> GetItemByArtistIdAsync(Guid id);
-        Task<IEnumerable<Item>> GetItemByGenreIdAsync(Guid id);
-        Task<IEnumerable<Item>> GetActiveItemsAsync();
+        Task<Item> GetItemWithSub(Guid id, CancellationToken token);
+        Task<IEnumerable<Item>> GetItemByArtistIdAsync(Guid id, CancellationToken token);
+        Task<IEnumerable<Item>> GetItemByGenreIdAsync(Guid id, CancellationToken token);
+        Task<IEnumerable<Item>> GetActiveItemsAsync(CancellationToken token);
     }
 }

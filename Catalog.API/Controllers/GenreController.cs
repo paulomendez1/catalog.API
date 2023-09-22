@@ -29,10 +29,10 @@ namespace Catalog.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter)
+        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter, CancellationToken token)
         {
             _logger.LogInformation("Getting genres...");
-            var genres = await _genreService.GetGenresAsync(queryFilter);
+            var genres = await _genreService.GetGenresAsync(queryFilter, token);
 
             var paginationMetadata = new
             {
@@ -48,32 +48,32 @@ namespace Catalog.API.Controllers
         }
         [HttpGet("{id:guid}")]
         [GenreExists]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id, CancellationToken token)
         {
             _logger.LogInformation($"Getting genre with ID: {id}...");
             var result = await _genreService.GetGenreAsync(new GetGenreRequest
            {
                 GenreId = id
-           });
+           }, token);
            return Ok(result);
         }
 
         [HttpGet("{id:guid}/items")]
         [GenreExists]
-        public async Task<IActionResult> GetItemsById(Guid id)
+        public async Task<IActionResult> GetItemsById(Guid id, CancellationToken token)
         {
             _logger.LogInformation($"Getting items with genre ID: {id}...");
             var result = await _genreService.GetItemByGenreIdAsync(new GetGenreRequest
             {
                 GenreId = id
-            });
+            }, token);
             return Ok(result);
         }
         [HttpPost]
-        public async Task<IActionResult> Post(AddGenreRequest request)
+        public async Task<IActionResult> Post(AddGenreRequest request, CancellationToken token)
         {
             _logger.LogInformation("Creating a genre...");
-            var result = await _genreService.AddGenreAsync(request);
+            var result = await _genreService.AddGenreAsync(request, token);
             return CreatedAtAction(nameof(GetById), new { id = result.GenreId }, null);
         }
     }

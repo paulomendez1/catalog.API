@@ -27,7 +27,7 @@ namespace Catalog.Infrastructure.Tests
         public async void GetAllAsync_Success()
         {
             // Act
-            var result = await _itemRepository.GetAllAsync();
+            var result = await _itemRepository.GetAllAsync(default(CancellationToken));
 
             // Result
             Assert.IsAssignableFrom<IEnumerable<Item>>(result);
@@ -38,7 +38,7 @@ namespace Catalog.Infrastructure.Tests
         public async void GetByIdAsync_ReturnsNull()
         {
             // Act
-            var result = await _itemRepository.GetByIdAsync(new Guid());
+            var result = await _itemRepository.GetByIdAsync(new Guid(), default(CancellationToken));
 
             // Result
             Assert.Null(result);
@@ -49,7 +49,7 @@ namespace Catalog.Infrastructure.Tests
         public async Task GetByIdAsync_ReturnItem(Guid guid)
         {
             // Act
-            var result = await _itemRepository.GetByIdAsync(guid);
+            var result = await _itemRepository.GetByIdAsync(guid, default(CancellationToken));
 
             // Result
             Assert.Equal(result.Id, guid);
@@ -77,7 +77,7 @@ namespace Catalog.Infrastructure.Tests
             };
 
             // Act
-            _itemRepository.Add(testItem);
+            _itemRepository.Add(testItem, default(CancellationToken));
             await _dbContext.SaveEntitiesAsync();
 
             // Result
@@ -89,7 +89,7 @@ namespace Catalog.Infrastructure.Tests
         [InlineData("f5da5ce4-091e-492e-a70a-22b073d75a52")]
         public async Task GetActiveItemsAsync_DoesNotContainInactiveRecords(string id)
         {
-            var result = await _itemRepository.GetActiveItemsAsync();
+            var result = await _itemRepository.GetActiveItemsAsync(default(CancellationToken));
             Assert.False(result.Any(x => x.Id == new Guid(id)));
         }
     }

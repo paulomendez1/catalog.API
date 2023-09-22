@@ -28,22 +28,22 @@ namespace Catalog.Domain.DTOs.Request.Validators
             RuleFor(x => x.Name).NotEmpty();
         }
 
-        private async Task<bool> ArtistExists(Guid artistId, CancellationToken cancellationToken)
+        private async Task<bool> ArtistExists(Guid artistId, CancellationToken token)
         {
             if (string.IsNullOrEmpty(artistId.ToString())) return false;
             var artist = await _artistService.GetArtistAsync(new GetArtistRequest
             {
                 ArtistId = artistId
-            });
+            }, token);
             return artist != null;
         }
-        private async Task<bool> GenreExists(Guid genreId, CancellationToken cancellationToken)
+        private async Task<bool> GenreExists(Guid genreId, CancellationToken token)
         {
             if (string.IsNullOrEmpty(genreId.ToString())) return false;
             var genre = await _genreService.GetGenreAsync(new GetGenreRequest
             {
                 GenreId = genreId
-            });
+            }, token);
             return genre != null;
         }
     }

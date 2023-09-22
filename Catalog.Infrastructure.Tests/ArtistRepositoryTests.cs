@@ -24,7 +24,7 @@ namespace Catalog.Infrastructure.Tests
         public async void GetAllAsync_Success()
         {
             // Act
-            var result = await _artistRepository.GetAllAsync();
+            var result = await _artistRepository.GetAllAsync(default(CancellationToken));
 
             // Result
             Assert.IsAssignableFrom<IEnumerable<Artist>>(result);
@@ -35,7 +35,7 @@ namespace Catalog.Infrastructure.Tests
         public async void GetByIdAsync_ReturnsNull()
         {
             // Act
-            var result = await _artistRepository.GetByIdAsync(new Guid());
+            var result = await _artistRepository.GetByIdAsync(new Guid(), default(CancellationToken));
 
             // Result
             Assert.Null(result);
@@ -46,7 +46,7 @@ namespace Catalog.Infrastructure.Tests
         public async Task GetByIdAsync_ReturnItem(Guid guid)
         {
             // Act
-            var result = await _artistRepository.GetByIdAsync(guid);
+            var result = await _artistRepository.GetByIdAsync(guid, default(CancellationToken));
 
             // Result
             Assert.Equal(result.ArtistId, guid);
@@ -63,7 +63,7 @@ namespace Catalog.Infrastructure.Tests
             };
 
             // Act
-            _artistRepository.Add(testArtist);
+            _artistRepository.Add(testArtist, default(CancellationToken));
             await _dbContext.SaveEntitiesAsync();
 
             // Result

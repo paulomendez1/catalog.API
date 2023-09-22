@@ -9,10 +9,10 @@ namespace Catalog.Domain.Contracts.Persistence
     public interface IRepository<T> where T : class
     {
         IUnitOfWork UnitOfWork { get; }
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<T> GetByIdAsync(Guid id);
-        T Add(T entity);
-        T Update(T entity);
+        Task<IEnumerable<T>> GetAllAsync(CancellationToken token);
+        Task<T> GetByIdAsync(Guid id, CancellationToken token);
+        T Add(T entity, CancellationToken token);
+        T Update(T entity, CancellationToken token);
 
     }
 }

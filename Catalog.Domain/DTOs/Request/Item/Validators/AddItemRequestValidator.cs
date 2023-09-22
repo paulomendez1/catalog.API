@@ -31,25 +31,25 @@ namespace Catalog.Domain.DTOs.Request.Validators
 
         }
 
-        private async Task<bool> ArtistExists(Guid artistId, CancellationToken cancellationToken)
+        private async Task<bool> ArtistExists(Guid artistId, CancellationToken token)
         {
             if (string.IsNullOrEmpty(artistId.ToString())) return false;
             var artist = await GetArtistAsync(artistId);
             return artist != null;
         }
-        private async Task<bool> GenreExists(Guid genreId, CancellationToken cancellationToken)
+        private async Task<bool> GenreExists(Guid genreId, CancellationToken token)
         {
             if (string.IsNullOrEmpty(genreId.ToString())) return false;
             var genre = await GetGenreAsync(genreId);
             return genre != null;
-        }        private async Task<ArtistResponse> GetArtistAsync(Guid artistId)
+        }        private async Task<ArtistResponse> GetArtistAsync(Guid artistId, CancellationToken token = default)
         {
-            return await _artistService.GetArtistAsync(new GetArtistRequest { ArtistId = artistId });;
+            return await _artistService.GetArtistAsync(new GetArtistRequest { ArtistId = artistId }, token);;
         }
 
-        private async Task<GenreResponse> GetGenreAsync(Guid genreId)
+        private async Task<GenreResponse> GetGenreAsync(Guid genreId, CancellationToken token = default)
         {
-            return await _genreService.GetGenreAsync(new GetGenreRequest { GenreId = genreId });
+            return await _genreService.GetGenreAsync(new GetGenreRequest { GenreId = genreId }, token);
         }
     }
 }

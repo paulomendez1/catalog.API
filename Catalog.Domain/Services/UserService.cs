@@ -24,9 +24,9 @@ namespace Catalog.Domain.Services
             _userRepository = userRepository;
             _authenticationSettings = authenticationSettings.Value;
         }
-        public async Task<UserResponse> GetUserAsync(GetUserRequest request, CancellationToken cancellationToken = default)
+        public async Task<UserResponse> GetUserAsync(GetUserRequest request, CancellationToken token = default)
         {
-            var response = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+            var response = await _userRepository.GetByEmailAsync(request.Email, token);
             return new UserResponse
             {
                 Name = response.Name,
@@ -34,9 +34,9 @@ namespace Catalog.Domain.Services
             };
         }
 
-        public async Task<TokenResponse> SignInAsync(SignInRequest request, CancellationToken cancellationToken = default)
+        public async Task<TokenResponse> SignInAsync(SignInRequest request, CancellationToken token = default)
         {
-            bool response = await _userRepository.AuthenticateAsync(request.Email, request.Password, cancellationToken);
+            bool response = await _userRepository.AuthenticateAsync(request.Email, request.Password, token);
             return response == false ? null : new TokenResponse
             {
                 Token = GenerateSecurityToken(request).Token,
@@ -44,7 +44,7 @@ namespace Catalog.Domain.Services
             };
         }
 
-        public async Task<UserResponse> SignUpAsync(SignUpRequest request, CancellationToken cancellationToken = default)
+        public async Task<UserResponse> SignUpAsync(SignUpRequest request, CancellationToken token = default)
         {
             var user = new Entities.User
             {
@@ -52,7 +52,7 @@ namespace Catalog.Domain.Services
                 UserName = request.Email,
                 Name = request.Name
             };
-            bool result = await _userRepository.SignUpAsync(user, request.Password, cancellationToken);
+            bool result = await _userRepository.SignUpAsync(user, request.Password, token);
             return !result ? null : new UserResponse
             {
                 Name = request.Name,

@@ -32,9 +32,9 @@ namespace Catalog.Persistence
             base.OnModelCreating(modelBuilder);
         }
 
-        public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
+        public async Task<bool> SaveEntitiesAsync(CancellationToken token = default)
         {
-            await SaveChangesAsync(cancellationToken);
+            await SaveChangesAsync();
             return true;
         }
     }

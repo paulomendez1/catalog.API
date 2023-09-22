@@ -36,7 +36,7 @@ namespace Catalog.Domain.Services
             _editItemValidator = editItemValidator;
             _memoryCache = memoryCache;
         }
-        public async Task<ItemResponse> AddItemAsync(AddItemRequest request)
+        public async Task<ItemResponse> AddItemAsync(AddItemRequest request, CancellationToken token)
         {
             ValidationResult validationResult = await _addItemValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -45,27 +45,27 @@ namespace Catalog.Domain.Services
                 throw new Exception(validationMessage);
             }
             var item = _mapper.Map<Item>(request);
-            var result = _itemRepository.Add(item);
+            var result = _itemRepository.Add(item, token);
             await _itemRepository.UnitOfWork.SaveChangesAsync();
             _memoryCache.Remove(CacheKeyEnum.Items);
             return _mapper.Map<ItemResponse>(result);
         }
 
-        public async Task<ItemResponse> DeleteItemAsync(DeleteItemRequest request)
+        public async Task<ItemResponse> DeleteItemAsync(DeleteItemRequest request, CancellationToken token)
         {
             if (request?.Id == null) throw new InvalidOperationException("");
-            var result = await _itemRepository.GetByIdAsync(request.Id);
+            var result = await _itemRepository.GetByIdAsync(request.Id, token);
             if (result == null) return null;
             result.IsInactive = true;
-            _itemRepository.Update(result);
+            _itemRepository.Update(result, token);
             await _itemRepository.UnitOfWork.SaveChangesAsync();
             _memoryCache.Remove(CacheKeyEnum.Items);
             return _mapper.Map<ItemResponse>(result);
         }
 
-        public async Task<ItemResponse> EditItemAsync(EditItemRequest request)
+        public async Task<ItemResponse> EditItemAsync(EditItemRequest request, CancellationToken token)
         {
-            var existingRecord = await _itemRepository.GetByIdAsync(request.Id);
+            var existingRecord = await _itemRepository.GetByIdAsync(request.Id, token);
             if (existingRecord == null)
             {
                 throw new ArgumentException($"Entity with { request.Id } is not present");
@@ -77,14 +77,14 @@ namespace Catalog.Domain.Services
                 throw new Exception(validationMessage);
             }
             var entity = _mapper.Map<Item>(request);
-            var result = _itemRepository.Update(entity);
+            var result = _itemRepository.Update(entity, token);
             await _itemRepository.UnitOfWork.SaveChangesAsync();
             _memoryCache.Remove(CacheKeyEnum.Items);
             _memoryCache.Remove(CacheKeyEnum.Item);
             return _mapper.Map<ItemResponse>(result);
         }
 
-        public async Task<ItemResponse> GetItemAsync(GetItemRequest request)
+        public async Task<ItemResponse> GetItemAsync(GetItemRequest request, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<ItemResponse>(CacheKeyEnum.Item);
 
@@ -95,13 +95,13 @@ namespace Catalog.Domain.Services
 
             if (request?.Id == null) throw new ArgumentNullException();
 
-            var entity = await _itemRepository.GetByIdAsync(request.Id);
+            var entity = await _itemRepository.GetByIdAsync(request.Id, token);
             var mappedEntity = _mapper.Map<ItemResponse>(entity);
             _memoryCache.Set<ItemResponse>(CacheKeyEnum.Item, mappedEntity, EXPIRATION_DATE);
             return mappedEntity;
         }
 
-        public async Task<PagedList<ItemResponse>> GetItemsAsync(GenericQueryFilter queryFilter)
+        public async Task<PagedList<ItemResponse>> GetItemsAsync(GenericQueryFilter queryFilter, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<PagedList<ItemResponse>>(CacheKeyEnum.Items);
             if (cacheData != null && cacheData.Count() > 0 
@@ -110,7 +110,7 @@ namespace Catalog.Domain.Services
                 return cacheData;
             }
 
-            var result = await _itemRepository.GetActiveItemsAsync();
+            var result = await _itemRepository.GetActiveItemsAsync(token);
 
             if (!string.IsNullOrWhiteSpace(queryFilter.SearchQuery))
             {

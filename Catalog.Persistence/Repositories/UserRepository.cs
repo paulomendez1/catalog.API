@@ -20,19 +20,19 @@ namespace Catalog.Persistence.Repositories
             _signInManager = signInManager;
         }
 
-        public async Task<bool> AuthenticateAsync(string email, string password, CancellationToken cancellationToken = default)
+        public async Task<bool> AuthenticateAsync(string email, string password, CancellationToken token = default)
         {
             var result = await _signInManager.PasswordSignInAsync(email, password, false, false);
             return result.Succeeded;
 
         }
 
-        public async Task<User> GetByEmailAsync(string requestEmail, CancellationToken cancellationToken = default)
+        public async Task<User> GetByEmailAsync(string requestEmail, CancellationToken token = default)
         {
-            return await _userManager.Users.FirstOrDefaultAsync(u => u.Email == requestEmail, cancellationToken);
+            return await _userManager.Users.FirstOrDefaultAsync(u => u.Email == requestEmail, token);
         }
 
-        public async Task<bool> SignUpAsync(User user, string password, CancellationToken cancellationToken = default)
+        public async Task<bool> SignUpAsync(User user, string password, CancellationToken token = default)
         {
             var result = await _userManager.CreateAsync(user, password);
             return result.Succeeded;

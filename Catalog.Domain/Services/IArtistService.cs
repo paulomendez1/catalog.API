@@ -11,9 +11,9 @@ namespace Catalog.Domain.Services
 {
     public interface IArtistService
     {
-        Task<PagedList<ArtistResponse>> GetArtistsAsync(GenericQueryFilter queryFilter);
-        Task<ArtistResponse> GetArtistAsync(GetArtistRequest request);
-        Task<IEnumerable<ItemResponse>> GetItemByArtistIdAsync(GetArtistRequest request);
-        Task<ArtistResponse> AddArtistAsync(AddArtistRequest request);
+        Task<PagedList<ArtistResponse>> GetArtistsAsync(GenericQueryFilter queryFilter, CancellationToken token);
+        Task<ArtistResponse> GetArtistAsync(GetArtistRequest request, CancellationToken token);
+        Task<IEnumerable<ItemResponse>> GetItemByArtistIdAsync(GetArtistRequest request, CancellationToken token);
+        Task<ArtistResponse> AddArtistAsync(AddArtistRequest request, CancellationToken token);
     }
 }

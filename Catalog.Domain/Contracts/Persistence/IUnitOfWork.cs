@@ -8,7 +8,7 @@ namespace Catalog.Domain.Contracts.Persistence
 {
     public interface IUnitOfWork : IDisposable 
     {
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
-        Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        Task<int> SaveChangesAsync(CancellationToken token = default(CancellationToken));
+        Task<bool> SaveEntitiesAsync(CancellationToken token = default(CancellationToken));
     }
 }

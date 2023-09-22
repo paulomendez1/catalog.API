@@ -41,11 +41,11 @@ namespace Catalog.API.Controllers
 
         [HttpGet]
 
-        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter)
+        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter, CancellationToken token)
         {
             _logger.LogInformation("Getting items...");
 
-            var items = await _itemService.GetItemsAsync(queryFilter);
+            var items = await _itemService.GetItemsAsync(queryFilter, token);
 
             var paginationMetadata = new
             {
@@ -62,32 +62,32 @@ namespace Catalog.API.Controllers
 
         [HttpGet("{id:guid}")]
         [ItemExists]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id, CancellationToken token)
         {
             _logger.LogInformation($"Getting item with ID:{id}...");
-            var result = await _itemService.GetItemAsync(new GetItemRequest { Id = id });
+            var result = await _itemService.GetItemAsync(new GetItemRequest { Id = id }, token);
             return Ok(result);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(AddItemRequest request)
+        public async Task<IActionResult> Post(AddItemRequest request, CancellationToken token)
         {
             _logger.LogInformation("Creating item...");
-            var result = await _itemService.AddItemAsync(request);
+            var result = await _itemService.AddItemAsync(request, token);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, null);
         }
 
         [HttpPut("{id:guid}")]
         [ItemExists]
-        public async Task<IActionResult> Put(Guid id, EditItemRequest request)
+        public async Task<IActionResult> Put(Guid id, EditItemRequest request, CancellationToken token)
         {
             _logger.LogInformation($"Updating item with ID: {id}");
             request.Id = id;
-            var result = await _itemService.EditItemAsync(request);
+            var result = await _itemService.EditItemAsync(request, token);
             return Ok(result);
         }        [HttpDelete("{id:guid}")]
         [ItemExists]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken token)
         {
             _logger.LogInformation($"Deleting item with ID: {id}");
             if (id == Guid.Empty)
@@ -95,7 +95,7 @@ namespace Catalog.API.Controllers
                 return BadRequest();
             }
             var request = new DeleteItemRequest { Id = id };
-            var item = await _itemService.DeleteItemAsync(request);
+            var item = await _itemService.DeleteItemAsync(request, token);
             return NoContent();
         }
     }

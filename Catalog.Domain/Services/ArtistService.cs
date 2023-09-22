@@ -28,19 +28,19 @@ namespace Catalog.Domain.Services
             _itemRepository = itemRepository;
             _memoryCache = memoryCache;
         }
-        public async Task<ArtistResponse> AddArtistAsync(AddArtistRequest request)
+        public async Task<ArtistResponse> AddArtistAsync(AddArtistRequest request, CancellationToken token)
         {
             var artist = new Artist
             {
                 ArtistName = request.ArtistName
             };
-            var result = _artistRepository.Add(artist);
+            var result = _artistRepository.Add(artist, token);
             await _artistRepository.UnitOfWork.SaveChangesAsync();
             _memoryCache.Remove(CacheKeyEnum.Artists);
             return _mapper.Map<ArtistResponse>(result);
         }
 
-        public async Task<ArtistResponse> GetArtistAsync(GetArtistRequest request)
+        public async Task<ArtistResponse> GetArtistAsync(GetArtistRequest request, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<ArtistResponse>(CacheKeyEnum.Artist);
 
@@ -50,13 +50,13 @@ namespace Catalog.Domain.Services
             }
 
             if (request?.ArtistId == null) throw new ArgumentNullException();
-            var artist = await _artistRepository.GetByIdAsync(request.ArtistId);
+            var artist = await _artistRepository.GetByIdAsync(request.ArtistId, token);
             var mappedArtist = artist == null ? null : _mapper.Map<ArtistResponse>(artist);
             _memoryCache.Set<ArtistResponse>(CacheKeyEnum.Artist, mappedArtist, EXPIRATION_DATE);
             return mappedArtist;
         }
 
-        public async Task<PagedList<ArtistResponse>> GetArtistsAsync(GenericQueryFilter queryFilter)
+        public async Task<PagedList<ArtistResponse>> GetArtistsAsync(GenericQueryFilter queryFilter, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<PagedList<ArtistResponse>>(CacheKeyEnum.Artists);
             
@@ -66,7 +66,7 @@ namespace Catalog.Domain.Services
                 return cacheData;
             }
 
-            var result = await _artistRepository.GetAllAsync();
+            var result = await _artistRepository.GetAllAsync(token);
 
             if (!string.IsNullOrWhiteSpace(queryFilter.SearchQuery))
             {
@@ -81,7 +81,7 @@ namespace Catalog.Domain.Services
             return paginatedResult;
         }
 
-        public async Task<IEnumerable<ItemResponse>> GetItemByArtistIdAsync(GetArtistRequest request)
+        public async Task<IEnumerable<ItemResponse>> GetItemByArtistIdAsync(GetArtistRequest request, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<IEnumerable<ItemResponse>>(CacheKeyEnum.Items);
 
@@ -91,7 +91,7 @@ namespace Catalog.Domain.Services
             }
 
             if (request?.ArtistId == null) throw new ArgumentNullException();
-            var items = await _itemRepository.GetItemByArtistIdAsync(request.ArtistId);
+            var items = await _itemRepository.GetItemByArtistIdAsync(request.ArtistId, token);
             var mappedItems = _mapper.Map<IEnumerable<ItemResponse>>(items);
             _memoryCache.Set<IEnumerable<ItemResponse>>(CacheKeyEnum.Items, mappedItems, EXPIRATION_DATE);
             return mappedItems;

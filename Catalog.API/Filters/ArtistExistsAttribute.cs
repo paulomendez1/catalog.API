@@ -27,7 +27,7 @@ namespace Catalog.API.Filters
                     context.Result = new BadRequestResult();
                     return;
                 }
-                var result = await _artistService.GetArtistAsync(new GetArtistRequest { ArtistId = id });
+                var result = await _artistService.GetArtistAsync(new GetArtistRequest { ArtistId = id }, default(CancellationToken));
                 if (result == null)
                 {
                     _logger.LogError($"Artist with ID: {id} not exist.");

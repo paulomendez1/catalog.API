@@ -25,7 +25,7 @@ namespace Catalog.Infrastructure.Tests
         public async void GetAllAsync_Success()
         {
             // Act
-            var result = await _genreRepository.GetAllAsync();
+            var result = await _genreRepository.GetAllAsync(default(CancellationToken));
 
             // Result
             Assert.IsAssignableFrom<IEnumerable<Genre>>(result);
@@ -36,7 +36,7 @@ namespace Catalog.Infrastructure.Tests
         public async void GetByIdAsync_ReturnsNull()
         {
             // Act
-            var result = await _genreRepository.GetByIdAsync(new Guid());
+            var result = await _genreRepository.GetByIdAsync(new Guid(), default(CancellationToken));
 
             // Result
             Assert.Null(result);
@@ -47,7 +47,7 @@ namespace Catalog.Infrastructure.Tests
         public async Task GetByIdAsync_ReturnItem(Guid guid)
         {
             // Act
-            var result = await _genreRepository.GetByIdAsync(guid);
+            var result = await _genreRepository.GetByIdAsync(guid, default(CancellationToken));
 
             // Result
             Assert.Equal(result.GenreId, guid);
@@ -63,7 +63,7 @@ namespace Catalog.Infrastructure.Tests
             };
 
             // Act
-            _genreRepository.Add(testGenre);
+            _genreRepository.Add(testGenre, default(CancellationToken));
             await _dbContext.SaveEntitiesAsync();
 
             // Result

@@ -11,9 +11,9 @@ namespace Catalog.Domain.Services
 {
     public interface IGenreService
     {
-        Task<PagedList<GenreResponse>> GetGenresAsync(GenericQueryFilter queryFilter);
-        Task<GenreResponse> GetGenreAsync(GetGenreRequest request);
-        Task<IEnumerable<ItemResponse>> GetItemByGenreIdAsync(GetGenreRequest request);
-        Task<GenreResponse> AddGenreAsync(AddGenreRequest request);
+        Task<PagedList<GenreResponse>> GetGenresAsync(GenericQueryFilter queryFilter, CancellationToken token);
+        Task<GenreResponse> GetGenreAsync(GetGenreRequest request, CancellationToken token);
+        Task<IEnumerable<ItemResponse>> GetItemByGenreIdAsync(GetGenreRequest request, CancellationToken token);
+        Task<GenreResponse> AddGenreAsync(AddGenreRequest request, CancellationToken token);
     }
 }

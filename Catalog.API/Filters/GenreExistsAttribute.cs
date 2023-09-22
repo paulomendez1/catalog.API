@@ -28,7 +28,7 @@ namespace Catalog.API.Filters
                     context.Result = new BadRequestResult();
                     return;
                 }
-                var result = await _genreService.GetGenreAsync(new GetGenreRequest { GenreId = id });
+                var result = await _genreService.GetGenreAsync(new GetGenreRequest { GenreId = id }, default(CancellationToken));
                 if (result == null)
                 {
                     _logger.LogError($"Genre with ID: {id} not exist.");

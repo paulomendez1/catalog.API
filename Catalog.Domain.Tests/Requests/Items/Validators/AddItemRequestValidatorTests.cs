@@ -24,10 +24,10 @@ namespace Catalog.Domain.Tests.Requests.Items.Validators
         public AddItemRequestValidatorTests()
         {
             _artistServiceMock = new Mock<IArtistService>();
-            _artistServiceMock.Setup(x => x.GetArtistAsync(It.IsAny<GetArtistRequest>()))
+            _artistServiceMock.Setup(x => x.GetArtistAsync(It.IsAny<GetArtistRequest>(), default(CancellationToken)))
                                            .ReturnsAsync(() => new ArtistResponse());
             _genreServiceMock = new Mock<IGenreService>();
-            _genreServiceMock.Setup(x => x.GetGenreAsync(It.IsAny<GetGenreRequest>()))
+            _genreServiceMock.Setup(x => x.GetGenreAsync(It.IsAny<GetGenreRequest>(), default(CancellationToken)))
                                             .ReturnsAsync(() => new GenreResponse());
             _validator = new AddItemRequestValidator(_artistServiceMock.Object, _genreServiceMock.Object);
         }
@@ -56,7 +56,7 @@ namespace Catalog.Domain.Tests.Requests.Items.Validators
         [Fact]
         public async void ArtistDoesNotExist_ReturnsError()
         {
-            _artistServiceMock.Setup(x => x.GetArtistAsync(It.IsAny<GetArtistRequest>()))
+            _artistServiceMock.Setup(x => x.GetArtistAsync(It.IsAny<GetArtistRequest>(), default(CancellationToken)))
                                             .ReturnsAsync(() => null);
             var addItemRequest = new AddItemRequest
             {
@@ -69,7 +69,7 @@ namespace Catalog.Domain.Tests.Requests.Items.Validators
         [Fact]
         public async void GenreDoesNotExist_ReturnsError()
         {
-            _genreServiceMock.Setup(x => x.GetGenreAsync(It.IsAny<GetGenreRequest>()))
+            _genreServiceMock.Setup(x => x.GetGenreAsync(It.IsAny<GetGenreRequest>(), default(CancellationToken)))
                                           .ReturnsAsync(() => null);
             var addItemRequest = new AddItemRequest
             {

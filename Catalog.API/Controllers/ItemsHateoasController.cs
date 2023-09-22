@@ -22,9 +22,9 @@ namespace Catalog.API.Controllers
         }
 
         [HttpGet(Name = nameof(Get))]
-        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter)
+        public async Task<IActionResult> Get([FromQuery] GenericQueryFilter queryFilter, CancellationToken token = default)
         {
-            var result = await _itemService.GetItemsAsync(queryFilter);
+            var result = await _itemService.GetItemsAsync(queryFilter, token);
             var totalItems = result.Count();
             var itemsOnPage = result.OrderBy(c => c.Name)
                                     .Skip(queryFilter.PageSize * queryFilter.PageNumber)
@@ -44,9 +44,9 @@ namespace Catalog.API.Controllers
 
         [HttpGet("{id:guid}", Name = nameof(GetById))]
         [ItemExists]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id, CancellationToken token = default)
         {
-            var result = await _itemService.GetItemAsync(new GetItemRequest { Id = id });
+            var result = await _itemService.GetItemAsync(new GetItemRequest { Id = id }, token);
             var hateoasResult = new ItemHateoasResponse
             {
                 Data = result
@@ -56,18 +56,18 @@ namespace Catalog.API.Controllers
         }
 
         [HttpPost(Name = nameof(Post))]
-        public async Task<IActionResult> Post(AddItemRequest request)
+        public async Task<IActionResult> Post(AddItemRequest request, CancellationToken token = default)
         {
-            var result = await _itemService.AddItemAsync(request);
+            var result = await _itemService.AddItemAsync(request, token);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, null);
         }
 
         [HttpPut("{id:guid}", Name = nameof(Put))]
         [ItemExists]
-        public async Task<IActionResult> Put(Guid id, EditItemRequest request)
+        public async Task<IActionResult> Put(Guid id, EditItemRequest request, CancellationToken token = default)
         {
             request.Id = id;
-            var result = await _itemService.EditItemAsync(request);
+            var result = await _itemService.EditItemAsync(request, token);
             var hateoasResult = new ItemHateoasResponse
             {
                 Data = result
@@ -78,10 +78,10 @@ namespace Catalog.API.Controllers
 
         [HttpDelete("{id:guid}", Name = nameof(Delete))]
         [ItemExists]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, CancellationToken token = default)
         {
             var request = new DeleteItemRequest { Id = id };
-            await _itemService.DeleteItemAsync(request);
+            await _itemService.DeleteItemAsync(request, token);
             return NoContent();
         }
     }

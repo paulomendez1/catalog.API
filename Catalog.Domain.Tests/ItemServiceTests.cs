@@ -33,10 +33,10 @@ namespace Catalog.Domain.Tests
             _itemRepository = new ItemRepository(catalogContextFactory._dbContext);
             _mapper = catalogContextFactory._mapper;
             _artistServiceMock = new Mock<IArtistService>();
-            _artistServiceMock.Setup(x => x.GetArtistAsync(It.IsAny<GetArtistRequest>()))
+            _artistServiceMock.Setup(x => x.GetArtistAsync(It.IsAny<GetArtistRequest>(), default(CancellationToken)))
                                            .ReturnsAsync(() => new ArtistResponse());
             _genreServiceMock = new Mock<IGenreService>();
-            _genreServiceMock.Setup(x => x.GetGenreAsync(It.IsAny<GetGenreRequest>()))
+            _genreServiceMock.Setup(x => x.GetGenreAsync(It.IsAny<GetGenreRequest>(), default(CancellationToken)))
                                             .ReturnsAsync(() => new GenreResponse());
             _addItemRequest = new AddItemRequestValidator(_artistServiceMock.Object, _genreServiceMock.Object);
             _editItemRequest = new EditItemRequestValidator(_artistServiceMock.Object, _genreServiceMock.Object);
@@ -53,7 +53,7 @@ namespace Catalog.Domain.Tests
         {
 
             //Act
-            var result = await _itemService.GetItemsAsync(_queryFilter);
+            var result = await _itemService.GetItemsAsync(_queryFilter, default(CancellationToken));
 
             //Result
             Assert.NotNull(result);
@@ -65,7 +65,7 @@ namespace Catalog.Domain.Tests
         public async Task GetItemAsync_ReturnItem(string guid)
         {
             //Act
-            var result = await _itemService.GetItemAsync(new GetItemRequest { Id = new Guid(guid) });
+            var result = await _itemService.GetItemAsync(new GetItemRequest { Id = new Guid(guid) }, default(CancellationToken));
             
             //Result
             Assert.Equal(new Guid(guid), result.Id);
@@ -75,7 +75,7 @@ namespace Catalog.Domain.Tests
         public async Task GetItemAsync_ThrowException()
         {
             //Result
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _itemService.GetItemAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _itemService.GetItemAsync(null, default(CancellationToken)));
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace Catalog.Domain.Tests
             };
 
             //Act
-            var result = await _itemService.AddItemAsync(testItem);
+            var result = await _itemService.AddItemAsync(testItem, default(CancellationToken));
 
             Assert.Equal(testItem.Name, result.Name);
             Assert.Equal(testItem.Description, result.Description);
@@ -136,7 +136,7 @@ namespace Catalog.Domain.Tests
             };
 
             //Act
-            var result = await _itemService.EditItemAsync(testItem);
+            var result = await _itemService.EditItemAsync(testItem, default(CancellationToken));
 
             Assert.Equal(testItem.Name, result.Name);
             Assert.Equal(testItem.Description, result.Description);
