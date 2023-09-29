@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
 
 namespace Catalog.Domain.Services
 {
@@ -104,8 +105,11 @@ namespace Catalog.Domain.Services
         public async Task<PagedList<ItemResponse>> GetItemsAsync(GenericQueryFilter queryFilter, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<PagedList<ItemResponse>>(CacheKeyEnum.Items);
-            if (cacheData != null && cacheData.Count() > 0 
-                && cacheData.CurrentPage == queryFilter.PageNumber && cacheData.PageSize == queryFilter.PageSize)
+            if (cacheData != null && cacheData.Count() > 0
+                && cacheData.CurrentPage == queryFilter.PageNumber && 
+                cacheData.PageSize == queryFilter.PageSize
+                && cacheData.SortOrder == queryFilter.SortOrder
+                && cacheData.SortColumn == queryFilter.SortColumn)
             {
                 return cacheData;
             }
@@ -117,10 +121,17 @@ namespace Catalog.Domain.Services
                 queryFilter.SearchQuery = queryFilter.SearchQuery.Trim();
                 result = result.Where(x => x.Description.Contains(queryFilter.SearchQuery) || x.Name.Contains(queryFilter.SearchQuery) || x.LabelName.Contains(queryFilter.SearchQuery));
             }
-            result = result.OrderByDescending(x => x.ReleaseDate);
+            
+            if (!string.IsNullOrEmpty(queryFilter.SortColumn))
+            {
+                queryFilter.SortOrder = !string.IsNullOrEmpty(queryFilter.SortOrder)
+                        && queryFilter.SortOrder.ToUpper() == "ASC" ? "ASC" : "DESC";
+                result = result.AsQueryable().OrderBy(
+                string.Format("{0} {1}", queryFilter.SortColumn, queryFilter.SortOrder));
+            }
 
             var mappedResult = _mapper.Map<List<ItemResponse>>(result);
-            var paginatedResult = PagedList<ItemResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize);
+            var paginatedResult = PagedList<ItemResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize, queryFilter.SortColumn, queryFilter.SortOrder);
             _memoryCache.Set<PagedList<ItemResponse>>(CacheKeyEnum.Items, paginatedResult, EXPIRATION_DATE);
             return paginatedResult;
         }

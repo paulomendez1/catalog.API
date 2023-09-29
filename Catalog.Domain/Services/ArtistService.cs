@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
 
 namespace Catalog.Domain.Services
 {
@@ -59,9 +60,12 @@ namespace Catalog.Domain.Services
         public async Task<PagedList<ArtistResponse>> GetArtistsAsync(GenericQueryFilter queryFilter, CancellationToken token)
         {
             var cacheData = _memoryCache.Get<PagedList<ArtistResponse>>(CacheKeyEnum.Artists);
-            
+
             if (cacheData != null && cacheData.Count() > 0
-                       && cacheData.CurrentPage == queryFilter.PageNumber && cacheData.PageSize == queryFilter.PageSize)
+                && cacheData.CurrentPage == queryFilter.PageNumber &&
+                cacheData.PageSize == queryFilter.PageSize
+                && cacheData.SortOrder == queryFilter.SortOrder
+                && cacheData.SortColumn == queryFilter.SortColumn)
             {
                 return cacheData;
             }
@@ -73,10 +77,17 @@ namespace Catalog.Domain.Services
                 queryFilter.SearchQuery = queryFilter.SearchQuery.Trim();
                 result = result.Where(x => x.ArtistName.Contains(queryFilter.SearchQuery));
             }
-            result = result.OrderByDescending(x => x.ArtistName);
+
+            if (!string.IsNullOrEmpty(queryFilter.SortColumn))
+            {
+                queryFilter.SortOrder = !string.IsNullOrEmpty(queryFilter.SortOrder)
+                        && queryFilter.SortOrder.ToUpper() == "ASC" ? "ASC" : "DESC";
+                result = result.AsQueryable().OrderBy(
+                string.Format("{0} {1}", queryFilter.SortColumn, queryFilter.SortOrder));
+            }
 
             var mappedResult = _mapper.Map<List<ArtistResponse>>(result);
-            var paginatedResult = PagedList<ArtistResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize);
+            var paginatedResult = PagedList<ArtistResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize, queryFilter.SortColumn, queryFilter.SortOrder);
             _memoryCache.Set<IEnumerable<ArtistResponse>>(CacheKeyEnum.Artists, paginatedResult, EXPIRATION_DATE);
             return paginatedResult;
         }

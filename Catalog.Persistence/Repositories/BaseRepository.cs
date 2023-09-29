@@ -23,7 +23,6 @@ namespace Catalog.Persistence.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync(CancellationToken token)
         {
-            await Task.Delay(5000, token);
             return await _context.Set<T>().AsNoTracking().ToListAsync(token);
         }
 

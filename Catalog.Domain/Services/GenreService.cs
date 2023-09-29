@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
 
 namespace Catalog.Domain.Services
 {
@@ -45,7 +46,10 @@ namespace Catalog.Domain.Services
             var cacheData = _memoryCache.Get<PagedList<GenreResponse>>(CacheKeyEnum.Genres);
 
             if (cacheData != null && cacheData.Count() > 0
-                && cacheData.CurrentPage == queryFilter.PageNumber && cacheData.PageSize == queryFilter.PageSize)
+                && cacheData.CurrentPage == queryFilter.PageNumber &&
+                cacheData.PageSize == queryFilter.PageSize
+                && cacheData.SortOrder == queryFilter.SortOrder
+                && cacheData.SortColumn == queryFilter.SortColumn)
             {
                 return cacheData;
             }
@@ -57,10 +61,17 @@ namespace Catalog.Domain.Services
                 queryFilter.SearchQuery = queryFilter.SearchQuery.Trim();
                 result = result.Where(x => x.GenreDescription.Contains(queryFilter.SearchQuery));
             }
-            result = result.OrderByDescending(x => x.GenreDescription);
+
+            if (!string.IsNullOrEmpty(queryFilter.SortColumn))
+            {
+                queryFilter.SortOrder = !string.IsNullOrEmpty(queryFilter.SortOrder)
+                        && queryFilter.SortOrder.ToUpper() == "ASC" ? "ASC" : "DESC";
+                result = result.AsQueryable().OrderBy(
+                string.Format("{0} {1}", queryFilter.SortColumn, queryFilter.SortOrder));
+            }
 
             var mappedResult = _mapper.Map<List<GenreResponse>>(result);
-            var paginatedResult = PagedList<GenreResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize);
+            var paginatedResult = PagedList<GenreResponse>.Create(mappedResult, queryFilter.PageNumber, queryFilter.PageSize, queryFilter.SortColumn, queryFilter.SortOrder);
             _memoryCache.Set<PagedList<GenreResponse>>(CacheKeyEnum.Genres, paginatedResult, EXPIRATION_DATE);
             return paginatedResult;
         }
