@@ -1,5 +1,6 @@
 ﻿using Catalog.API.Filters;
 using Catalog.API.ResponseModels;
+using Catalog.API.SyncDataServices.Http;
 using Catalog.Domain.Configurations;
 using Catalog.Domain.Contracts.Persistence;
 using Catalog.Domain.DTOs.Request;
@@ -31,12 +32,14 @@ namespace Catalog.API.Controllers
         private readonly IItemService _itemService;
         private readonly ILogger<ItemsController> _logger;
         private readonly ILinksService _linksService;
+        private readonly ICartDataService _cartDataService;
         public ItemsController(IItemService itemService, ILogger<ItemsController> logger,
-                               ILinksService linksService)
+                               ILinksService linksService, ICartDataService cartDataService)
         {
             _itemService = itemService;
             _logger = logger;
             _linksService = linksService;
+            _cartDataService = cartDataService;
         }
 
         [HttpGet]
@@ -66,6 +69,16 @@ namespace Catalog.API.Controllers
         {
             _logger.LogInformation($"Getting item with ID:{id}...");
             var result = await _itemService.GetItemAsync(new GetItemRequest { Id = id }, token);
+
+            try
+            {
+                await _cartDataService.SendItemToCart(result);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
             return Ok(result);
         }
 

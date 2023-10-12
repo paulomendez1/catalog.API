@@ -1,5 +1,6 @@
 using Catalog.API.Controllers;
 using Catalog.API.ResponseModels;
+using Catalog.API.SyncDataServices.Http;
 using Catalog.Domain;
 using Catalog.Persistence;
 using FluentValidation.AspNetCore;
@@ -66,6 +67,8 @@ namespace Catalog.API {
             builder.Services.AddResponseCaching();
 
             builder.Services.AddMemoryCache();
+
+            builder.Services.AddHttpClient<ICartDataService, CartDataService>();
 
             builder.Services.AddLinks(config =>
             {
